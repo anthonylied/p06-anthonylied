@@ -278,6 +278,17 @@ class Engine(BaseEngine):
                 )
                 self.image = self.image.quantize(method=quantize_method)
 
+                if requested_extension == ".gif":
+                    # GIF can only mark one palette index as transparent,
+                    # and quantize() leaves that index unset.
+                    palette = self.image.getpalette("RGBA") or []
+
+                    for index in range(0, len(palette), 4):
+                        if palette[index + 3] == 0:
+                            self.image.info["transparency"] = index // 4
+
+                            break
+
         ext = requested_extension or self.get_default_extension()
 
         if ext in (".heic", ".heif") and not HAVE_HEIF:
